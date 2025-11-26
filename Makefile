@@ -31,6 +31,9 @@ docker-build: dev-docker-stop
 		echo "Building fixtures contract..." && \
 		cdt-cpp fixtures/fixtures.cpp -o fixtures/fixtures.wasm && \
 		export_memory fixtures/fixtures.wasm && \
+		echo "Building rsa contract..." && \
+		cdt-cpp rsa/rsa.cpp -o rsa/rsa.wasm && \
+		export_memory rsa/rsa.wasm && \
 		echo "Building inline contracts..." && \
 		mkdir -p inline/output && \
 		cdt-cpp inline/src/r1.cpp -o inline/output/r1.wasm && \
