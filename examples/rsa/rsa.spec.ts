@@ -100,6 +100,30 @@ describe('RSA Signature Verification', () => {
     // expect(result.ok).to.be.true;
   });
 
+  it('should fail to verify signature with different message', async () => {
+    // Set public key
+    await rsa.actions.setpubkey([0, exponent1, modulus1]).send();
+
+    // Sign one message
+    const originalMessage = 'Hello, RSA!';
+    const originalHash = crypto.createHash('sha256').update(originalMessage).digest('hex');
+    const signature = rsaSigning.signMessage(originalHash);
+
+    // Try to verify with a different message hash
+    const differentMessage = 'Different message';
+    const differentHash = crypto.createHash('sha256').update(differentMessage).digest('hex');
+
+    // Call verify action with mismatched hash and signature
+    await rsa.actions.verify([0, differentHash, signature]).send();
+
+    // Check the result - should be false since message doesn't match signature
+    const result = rsa.tables.results(scope).getTableRow(BigInt(0));
+    expect(result).to.not.be.undefined;
+    expect(result.index).to.equal(0);
+    // When intrinsic is implemented, this should be false for invalid signatures
+    expect(result.ok).to.be.false;
+  });
+
   it('should clear result', async () => {
     // Set public key and verify a signature first
     await rsa.actions.setpubkey([0, exponent1, modulus1]).send();
