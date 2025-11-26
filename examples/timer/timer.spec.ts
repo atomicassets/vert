@@ -17,6 +17,8 @@ beforeEach(() => {
   blockchain.resetTables()
 });
 
+console.log(time.actions);
+
 describe('time_test', () => {
   it('check time', async () => {
     await time.actions.exec([timeName]).send();
