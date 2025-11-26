@@ -17,6 +17,7 @@ import { CodeHashResult } from "../utils/codeHash";
 import { recoverUncompressedDigest } from "../utils/curve";
 import * as bigintConversion from 'bigint-conversion'
 const bn128 = require('rustbn.js')
+const NodeRSA = require('node-rsa')
 
 type ptr = number;
 type i32 = number;
@@ -518,7 +519,40 @@ class VM extends Vert {
             return -1
           }
         },
-        
+
+        verify_rsa_sha256_sig: (data: ptr, data_len: i32, signature: ptr, exponent: ptr, modulus: ptr): i32 => {
+          log.debug('verify_rsa_sha256_sig');
+
+          try {
+            // Read hex strings from WebAssembly memory
+            const dataHex = this.memory.readString(data, data_len);
+            const signatureHex = this.memory.readString(signature);  // null-terminated
+            const exponentHex = this.memory.readString(exponent);    // null-terminated
+            const modulusHex = this.memory.readString(modulus);      // null-terminated
+
+            // Convert hex strings to Node.js buffers (using global Buffer, not custom Buffer)
+            const dataBuffer = global.Buffer.from(dataHex, 'hex');
+            const signatureBuffer = global.Buffer.from(signatureHex, 'hex');
+
+            // Create RSA public key from components
+            const key = new NodeRSA();
+            key.importKey({
+              n: global.Buffer.from(modulusHex, 'hex'),
+              e: parseInt(exponentHex, 16)
+            }, 'components-public');
+
+            // Verify the signature
+            // The data is already a SHA256 hash, and node-rsa will verify it directly
+            const isValid = key.verify(dataBuffer, signatureBuffer, 'buffer', 'buffer');
+
+            // Return 1 for valid, 0 for invalid (C++ bool semantics)
+            return isValid ? 1 : 0;
+          } catch (e) {
+            log.debug(`verify_rsa_sha256_sig error: ${e.message}`);
+            return 0; // Return false on error
+          }
+        },
+
         recover_key: (digest: ptr, sig: ptr, siglen: i32, pub: ptr, publen: i32): i32 => {
           log.debug('recover_key');
           const signature = Buffer.from_(this.memory.buffer, sig, siglen);

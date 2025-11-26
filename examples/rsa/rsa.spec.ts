@@ -59,7 +59,7 @@ describe('RSA Signature Verification', () => {
     // Verify the public key was stored
     const pubkey = rsa.tables.pubkeys(scope).getTableRow(BigInt(0));
     expect(pubkey).to.not.be.undefined;
-    expect(pubkey.index.toNumber()).to.equal(0);
+    expect(pubkey.index).to.equal(0);
     expect(pubkey.exponent).to.equal(exponent1);
     expect(pubkey.modulus).to.equal(modulus1);
   });
@@ -95,7 +95,7 @@ describe('RSA Signature Verification', () => {
     // Check the result in the results table
     const result = rsa.tables.results(scope).getTableRow(BigInt(0));
     expect(result).to.not.be.undefined;
-    expect(result.index.toNumber()).to.equal(0);
+    expect(result.index).to.equal(0);
     // When intrinsic is implemented, this should be true for valid signatures
     // expect(result.ok).to.be.true;
   });
@@ -116,14 +116,8 @@ describe('RSA Signature Verification', () => {
     await rsa.actions.clearresult([0]).send();
 
     // Verify result was removed
-    try {
-      result = rsa.tables.results(scope).getTableRow(BigInt(0));
-      // If we get here, the row still exists (shouldn't happen)
-      expect.fail('Result should have been deleted');
-    } catch (e) {
-      // Expected - row should not exist
-      expect(e.message).to.include('Row not found');
-    }
+    result = rsa.tables.results(scope).getTableRow(BigInt(0));
+    expect(result).to.be.undefined;
   });
 
   it('should fail when verifying without setting public key', async () => {
@@ -149,7 +143,7 @@ describe('RSA Signature Verification', () => {
     const pubkey0 = rsa.tables.pubkeys(scope).getTableRow(BigInt(0));
     const pubkey1 = rsa.tables.pubkeys(scope).getTableRow(BigInt(1));
 
-    expect(pubkey0.index.toNumber()).to.equal(0);
-    expect(pubkey1.index.toNumber()).to.equal(1);
+    expect(pubkey0.index).to.equal(0);
+    expect(pubkey1.index).to.equal(1);
   });
 });
