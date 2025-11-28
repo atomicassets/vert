@@ -76,8 +76,8 @@ public:
          message.data(),
          message.size(),
          signature.c_str(),
-         pk_itr->exponent.c_str(),
-         pk_itr->modulus.c_str()
+         pk_itr->exponent,
+         pk_itr->modulus
       );
 
       // Store result

@@ -520,15 +520,26 @@ class VM extends Vert {
           }
         },
 
-        verify_rsa_sha256_sig: (data: ptr, data_len: i32, signature: ptr, exponent: ptr, modulus: ptr): i32 => {
+        verify_rsa_sha256_sig: (
+          data: ptr, data_len: i32,
+          signature: ptr, signature_len: i32,
+          exponent: ptr, exponent_len: i32,
+          modulus: ptr, modulus_len: i32
+        ): i32 => {
           log.debug('verify_rsa_sha256_sig');
 
           try {
-            // Read hex strings from WebAssembly memory
+            // Read all hex strings with their lengths
             const dataHex = this.memory.readString(data, data_len);
-            const signatureHex = this.memory.readString(signature);  // null-terminated
-            const exponentHex = this.memory.readString(exponent);    // null-terminated
-            const modulusHex = this.memory.readString(modulus);      // null-terminated
+            const signatureHex = this.memory.readString(signature, signature_len);
+            const exponentHex = this.memory.readString(exponent, exponent_len);
+            const modulusHex = this.memory.readString(modulus, modulus_len);
+
+            log.debug(`RSA verify inputs:
+              dataHex (${data_len}): ${dataHex}
+              signatureHex (${signature_len}): ${signatureHex.substring(0, 100)}...
+              exponentHex (${exponent_len}): ${exponentHex}
+              modulusHex (${modulus_len}): ${modulusHex.substring(0, 100)}...`);
 
             // Convert hex strings to Node.js buffers (using global Buffer, not custom Buffer)
             const dataBuffer = global.Buffer.from(dataHex, 'hex');

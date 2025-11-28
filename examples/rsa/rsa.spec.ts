@@ -89,15 +89,13 @@ describe('RSA Signature Verification', () => {
     const signature = rsaSigning.signMessage(messageHash);
 
     // Call verify action
-    // Note: This will fail until verify_rsa_sha256_sig intrinsic is implemented in vm.ts
     await rsa.actions.verify([0, messageHash, signature]).send();
 
     // Check the result in the results table
     const result = rsa.tables.results(scope).getTableRow(BigInt(0));
     expect(result).to.not.be.undefined;
     expect(result.index).to.equal(0);
-    // When intrinsic is implemented, this should be true for valid signatures
-    // expect(result.ok).to.be.true;
+    expect(result.ok).to.be.true;
   });
 
   it('should fail to verify signature with different message', async () => {
