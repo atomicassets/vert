@@ -6,6 +6,9 @@ import Buffer from "../../buffer";
 import { nameToBigInt } from "../bn";
 import { Blockchain } from "../blockchain";
 
+const NodeRSA = require('node-rsa');
+const crypto = require('crypto');
+
 const bc = new Blockchain()
 
 let vm;
@@ -55,6 +58,122 @@ describe('eos-vm imports', () => {
       buffer.set(preimage, 0);
       buffer.set(digest, 4);
       vm.imports.env.assert_ripemd160(0, 4, 4);
+    });
+
+    it('assert_valid_rsa_sig', () => {
+      // Generate RSA key pair (1024 bits for faster testing)
+      const key = new NodeRSA({ b: 1024 });
+
+      // Create a message and hash it
+      const message = 'Hello, RSA!';
+      const messageHash = crypto.createHash('sha256').update(message).digest('hex');
+
+      // Sign the message hash
+      const signature = key.sign(global.Buffer.from(messageHash, 'hex'), 'hex');
+
+      // Extract public key components
+      const publicKey = key.exportKey('components-public');
+      const exponent = publicKey.e.toString(16);
+      const modulus = publicKey.n.toString('hex');
+
+      // Prepare memory buffer with hex strings
+      const buffer = Buffer.from_(memory.buffer);
+      let offset = 0;
+
+      // Write message hash
+      const messageHashBuffer = Buffer.from_(messageHash);
+      buffer.set(messageHashBuffer, offset);
+      const messageHashOffset = offset;
+      const messageHashLen = messageHash.length;
+      offset += messageHashLen + 1; // +1 for null terminator
+
+      // Write signature
+      const signatureBuffer = Buffer.from_(signature);
+      buffer.set(signatureBuffer, offset);
+      const signatureOffset = offset;
+      const signatureLen = signature.length;
+      offset += signatureLen + 1;
+
+      // Write exponent
+      const exponentBuffer = Buffer.from_(exponent);
+      buffer.set(exponentBuffer, offset);
+      const exponentOffset = offset;
+      const exponentLen = exponent.length;
+      offset += exponentLen + 1;
+
+      // Write modulus
+      const modulusBuffer = Buffer.from_(modulus);
+      buffer.set(modulusBuffer, offset);
+      const modulusOffset = offset;
+      const modulusLen = modulus.length;
+
+      // Call assert_valid_rsa_sig - should not throw
+      vm.imports.env.assert_valid_rsa_sig(
+        messageHashOffset, messageHashLen,
+        signatureOffset, signatureLen,
+        exponentOffset, exponentLen,
+        modulusOffset, modulusLen
+      );
+    });
+
+    it('assert_invalid_rsa_sig', () => {
+      // Generate RSA key pair (1024 bits for faster testing)
+      const key = new NodeRSA({ b: 1024 });
+
+      // Create a message and hash it
+      const message = 'Hello, RSA!';
+      const messageHash = crypto.createHash('sha256').update(message).digest('hex');
+
+      // Sign the message hash
+      const signature = key.sign(global.Buffer.from(messageHash, 'hex'), 'hex');
+
+      // Create a DIFFERENT message hash (to make signature invalid)
+      const differentMessage = 'Different message';
+      const differentHash = crypto.createHash('sha256').update(differentMessage).digest('hex');
+
+      // Extract public key components
+      const publicKey = key.exportKey('components-public');
+      const exponent = publicKey.e.toString(16);
+      const modulus = publicKey.n.toString('hex');
+
+      // Prepare memory buffer with hex strings
+      const buffer = Buffer.from_(memory.buffer);
+      let offset = 0;
+
+      // Write DIFFERENT message hash (doesn't match signature)
+      const differentHashBuffer = Buffer.from_(differentHash);
+      buffer.set(differentHashBuffer, offset);
+      const messageHashOffset = offset;
+      const messageHashLen = differentHash.length;
+      offset += messageHashLen + 1;
+
+      // Write signature (signed with original message)
+      const signatureBuffer = Buffer.from_(signature);
+      buffer.set(signatureBuffer, offset);
+      const signatureOffset = offset;
+      const signatureLen = signature.length;
+      offset += signatureLen + 1;
+
+      // Write exponent
+      const exponentBuffer = Buffer.from_(exponent);
+      buffer.set(exponentBuffer, offset);
+      const exponentOffset = offset;
+      const exponentLen = exponent.length;
+      offset += exponentLen + 1;
+
+      // Write modulus
+      const modulusBuffer = Buffer.from_(modulus);
+      buffer.set(modulusBuffer, offset);
+      const modulusOffset = offset;
+      const modulusLen = modulus.length;
+
+      // Call assert_invalid_rsa_sig - should not throw because signature is indeed invalid
+      vm.imports.env.assert_invalid_rsa_sig(
+        messageHashOffset, messageHashLen,
+        signatureOffset, signatureLen,
+        exponentOffset, exponentLen,
+        modulusOffset, modulusLen
+      );
     });
 
     it('recover_key', () => {

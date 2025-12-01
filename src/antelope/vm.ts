@@ -564,6 +564,38 @@ class VM extends Vert {
           }
         },
 
+        assert_valid_rsa_sig: (
+          data: ptr, data_len: i32,
+          signature: ptr, signature_len: i32,
+          exponent: ptr, exponent_len: i32,
+          modulus: ptr, modulus_len: i32
+        ): void => {
+          log.debug('assert_valid_rsa_sig');
+          const result = this.imports.env.verify_rsa_sha256_sig(
+            data, data_len,
+            signature, signature_len,
+            exponent, exponent_len,
+            modulus, modulus_len
+          );
+          assert(result === 1, 'RSA signature verification failed');
+        },
+
+        assert_invalid_rsa_sig: (
+          data: ptr, data_len: i32,
+          signature: ptr, signature_len: i32,
+          exponent: ptr, exponent_len: i32,
+          modulus: ptr, modulus_len: i32
+        ): void => {
+          log.debug('assert_invalid_rsa_sig');
+          const result = this.imports.env.verify_rsa_sha256_sig(
+            data, data_len,
+            signature, signature_len,
+            exponent, exponent_len,
+            modulus, modulus_len
+          );
+          assert(result === 0, 'RSA signature should be invalid but verification succeeded');
+        },
+
         recover_key: (digest: ptr, sig: ptr, siglen: i32, pub: ptr, publen: i32): i32 => {
           log.debug('recover_key');
           const signature = Buffer.from_(this.memory.buffer, sig, siglen);
