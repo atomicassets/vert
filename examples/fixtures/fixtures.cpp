@@ -15,4 +15,8 @@ public:
    };
 
    typedef multi_index<"data"_n, data> data_index;
+   
+   [[eosio::action]]
+   void nothing()
+   {}
 };
