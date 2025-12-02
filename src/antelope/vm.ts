@@ -529,8 +529,8 @@ class VM extends Vert {
           log.debug('verify_rsa_sha256_sig');
 
           try {
-            // Read all hex strings with their lengths
-            const dataHex = this.memory.readString(data, data_len);
+            // Read data as raw bytes (contracts pass byte-arrays), others as hex strings
+            const dataHex = this.memory.readHex(data, data_len);
             const signatureHex = this.memory.readString(signature, signature_len);
             const exponentHex = this.memory.readString(exponent, exponent_len);
             const modulusHex = this.memory.readString(modulus, modulus_len);
@@ -555,45 +555,13 @@ class VM extends Vert {
             // Verify the signature
             // The data is already a SHA256 hash, and node-rsa will verify it directly
             const isValid = key.verify(dataBuffer, signatureBuffer, 'buffer', 'buffer');
-
+            log.debug(`RSA signature valid: ${isValid}`);
             // Return 1 for valid, 0 for invalid (C++ bool semantics)
             return isValid ? 1 : 0;
           } catch (e) {
             log.debug(`verify_rsa_sha256_sig error: ${e.message}`);
             return 0; // Return false on error
           }
-        },
-
-        assert_valid_rsa_sig: (
-          data: ptr, data_len: i32,
-          signature: ptr, signature_len: i32,
-          exponent: ptr, exponent_len: i32,
-          modulus: ptr, modulus_len: i32
-        ): void => {
-          log.debug('assert_valid_rsa_sig');
-          const result = this.imports.env.verify_rsa_sha256_sig(
-            data, data_len,
-            signature, signature_len,
-            exponent, exponent_len,
-            modulus, modulus_len
-          );
-          assert(result === 1, 'RSA signature verification failed');
-        },
-
-        assert_invalid_rsa_sig: (
-          data: ptr, data_len: i32,
-          signature: ptr, signature_len: i32,
-          exponent: ptr, exponent_len: i32,
-          modulus: ptr, modulus_len: i32
-        ): void => {
-          log.debug('assert_invalid_rsa_sig');
-          const result = this.imports.env.verify_rsa_sha256_sig(
-            data, data_len,
-            signature, signature_len,
-            exponent, exponent_len,
-            modulus, modulus_len
-          );
-          assert(result === 0, 'RSA signature should be invalid but verification succeeded');
         },
 
         recover_key: (digest: ptr, sig: ptr, siglen: i32, pub: ptr, publen: i32): i32 => {
