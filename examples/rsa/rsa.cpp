@@ -1,12 +1,26 @@
 #include <eosio/eosio.hpp>
 #include <eosio/crypto.hpp>
 #include <string>
+#include <vector>
 
 using namespace eosio;
 
 class [[eosio::contract]] rsa : public contract {
 public:
    using contract::contract;
+
+   // Helper function to convert hex string to bytes
+   static std::vector<uint8_t> hex_to_bytes(const std::string& hex) {
+      std::vector<uint8_t> bytes;
+      check(hex.length() % 2 == 0, "hex string must have even length");
+
+      for (size_t i = 0; i < hex.length(); i += 2) {
+         std::string byte_string = hex.substr(i, 2);
+         uint8_t byte = (uint8_t)strtol(byte_string.c_str(), nullptr, 16);
+         bytes.push_back(byte);
+      }
+      return bytes;
+   }
 
    // Table to store RSA public keys
    struct [[eosio::table]] pubkey {
@@ -71,10 +85,15 @@ public:
       auto pk_itr = pubkeys.find(index);
       check(pk_itr != pubkeys.end(), "public key not found for index");
 
+      // Convert hex string message to bytes
+      // The message is expected to be a hex-encoded hash (e.g., SHA256 hash as hex string)
+      auto message_bytes = hex_to_bytes(message);
+
       // Call the RSA verification intrinsic
+      // VM will read these bytes and convert to hex for verification
       bool ok = verify_rsa_sha256_sig(
-         message.data(),
-         message.size(),
+         message_bytes.data(),
+         message_bytes.size(),
          signature.c_str(),
          pk_itr->exponent,
          pk_itr->modulus
