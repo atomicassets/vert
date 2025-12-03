@@ -1,8 +1,8 @@
 {
-  "name": "@vaulta/vert",
+  "name": "@waxio/vert",
   "version": "2.1.1",
-  "homepage": "https://github.com/eosnetworkfoundation/vert",
-  "description": "Testing library for Vaulta smart contracts",
+  "homepage": "https://github.com/worldwide-asset-exchange/wax-vert",
+  "description": "Testing library for WAX and Vaulta smart contracts",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
