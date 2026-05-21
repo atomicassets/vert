@@ -19,13 +19,13 @@ The focus of VeRT is on the better compatibility than the performance, so it can
 ## Installation
 
 ```shell
-npm install @vaulta/vert
+npm install @waxio/vert
 ```
 
 ## Example usage
 
 ```typescript
-import { Blockchain, nameToBigInt, expectToThrow } from "@vaulta/vert";
+import { Blockchain, nameToBigInt, expectToThrow } from "@waxio/vert";
 import { assert } from "chai";
 
 // instantiate the blockchain emulator
