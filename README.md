@@ -16,7 +16,7 @@ The focus of VeRT is on the better compatibility than the performance, so it can
 ## Requirement
 
 - WebAssembly binary with exported memory
-- Nodejs v16 or higher (JavaScript runtime with WebAssembly BigInt support)
+- Nodejs v20 or higher (JavaScript runtime with WebAssembly BigInt support)
 
 ## Chain compatibility
 

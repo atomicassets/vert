@@ -11,5 +11,5 @@
     "experimentalDecorators": true
   },
   "lib": ["es2020"],
-  "exclude": [ "examples/**/*" ]
+  "exclude": [ "examples/**/*", "src/**/tests/**", "**/*.spec.ts" ]
 }

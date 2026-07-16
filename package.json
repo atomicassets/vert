@@ -5,6 +5,9 @@
   "description": "Testing library for Antelope smart contracts, with per-chain host function parity",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "engines": {
+    "node": ">=20"
+  },
   "files": [
     "dist",
     "src"
@@ -14,7 +17,8 @@
     "build-web": "webpack",
     "start": "node dist/index",
     "test": "mocha src/**/*.spec.ts -r ts-node/register && yarn --cwd examples",
-    "prepublish": "npm run test && npm run build"
+    "prepack": "npm run build",
+    "prepublishOnly": "npm run test"
   },
   "author": "Jeeyong Um <conr2d@gmail.com>",
   "license": "MIT",
