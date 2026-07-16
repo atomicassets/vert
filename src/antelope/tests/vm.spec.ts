@@ -10,16 +10,23 @@ const NodeRSA = require('node-rsa');
 const crypto = require('crypto');
 
 const bc = new Blockchain()
+// A WAX chain exposes verify_rsa_sha256_sig, which generic Antelope withholds.
+const waxBc = new Blockchain({ chain: 'wax' })
 
 let vm;
+let waxVm;
 let memory;
 
 beforeEach(() => {
   bc.clearConsole()
-  vm = VM.from(new Uint8Array(), bc);
+  waxBc.clearConsole()
   memory = Memory.create(256);
+  vm = VM.from(new Uint8Array(), bc);
+  waxVm = VM.from(new Uint8Array(), waxBc);
   // @ts-ignore
   vm._memory = memory;
+  // @ts-ignore
+  waxVm._memory = memory;
 });
 
 describe('eos-vm imports', () => {
@@ -108,7 +115,7 @@ describe('eos-vm imports', () => {
       const modulusLen = modulus.length;
 
       // Call assert_valid_rsa_sig - should not throw
-      let valid = vm.imports.env.verify_rsa_sha256_sig(
+      let valid = waxVm.imports.env.verify_rsa_sha256_sig(
         messageHashOffset, messageHashLen,
         signatureOffset, signatureLen,
         exponentOffset, exponentLen,
@@ -169,7 +176,7 @@ describe('eos-vm imports', () => {
       const modulusLen = modulus.length;
 
       // Call assert_invalid_rsa_sig - should not throw because signature is indeed invalid
-      let result = vm.imports.env.verify_rsa_sha256_sig(
+      let result = waxVm.imports.env.verify_rsa_sha256_sig(
         messageHashOffset, messageHashLen,
         signatureOffset, signatureLen,
         exponentOffset, exponentLen,
@@ -198,6 +205,29 @@ describe('eos-vm imports', () => {
       buffer.set(signature, 32);
       buffer.set(publicKey, 98);
       vm.imports.env.assert_recover_key(0, 32, 66, 98, 34); // this throws an error when failed
+    });
+  });
+
+  describe('chain-specific host functions', () => {
+    it('generic Antelope withholds verify_rsa_sha256_sig', () => {
+      // A contract importing it would fail to instantiate here, exactly as
+      // setcode rejects it on EOS, Jungle4 and Vaulta.
+      expect(vm.imports.env.verify_rsa_sha256_sig).to.equal(undefined);
+    });
+
+    it('a WAX chain provides verify_rsa_sha256_sig', () => {
+      expect(waxVm.imports.env.verify_rsa_sha256_sig).to.be.a('function');
+    });
+
+    it('an unknown chain name withholds it', () => {
+      const other = VM.from(new Uint8Array(), new Blockchain({ chain: 'not-a-chain' }));
+      expect(other.imports.env.verify_rsa_sha256_sig).to.equal(undefined);
+    });
+
+    it('withholding a chain-specific function does not disturb the shared ones', () => {
+      // recover_key exists on every chain, so it must survive the gate on both.
+      expect(vm.imports.env.recover_key).to.be.a('function');
+      expect(waxVm.imports.env.recover_key).to.be.a('function');
     });
   });
 

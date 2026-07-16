@@ -14,6 +14,20 @@ import colors from 'colors'
 import { ACTIVATED_PROTOCOL_FEATURES } from "../utils/activatedFeatures";
 import Buffer from '../buffer'
 
+// Host functions that only some Antelope chains expose. A contract importing one
+// fails to load (setcode) on a chain that lacks it, so the VM must withhold it
+// on those chains too, or a passing test would not reflect the target chain.
+// Keyed by chain, valued by the host functions unique to it.
+export const CHAIN_SPECIFIC_HOST_FUNCTIONS: Record<string, readonly string[]> = {
+  wax: ['verify_rsa_sha256_sig'],
+}
+
+// The union of every chain-specific host function, used by the VM to withhold
+// any that the target chain does not provide.
+export const ALL_CHAIN_SPECIFIC_HOST_FUNCTIONS: ReadonlySet<string> = new Set(
+  Object.values(CHAIN_SPECIFIC_HOST_FUNCTIONS).flat()
+)
+
 export class Blockchain {
   accounts: { [key: string]: Account }
   timestamp: TimePoint
@@ -30,22 +44,36 @@ export class Blockchain {
   postStorage: any
   storageDeltaChangesets: any
   _storageDeltas: any
-  
+
+  // The chain being emulated, if any. Undefined means generic Antelope, which
+  // exposes no chain-specific host functions. Naming a chain (e.g. 'wax') adds
+  // the host functions unique to it.
+  chain?: string
+
   constructor ({
     accounts,
     timestamp,
     blockNum,
     store,
+    chain,
   }: {
     accounts?: { [key: string]: Account },
     timestamp?: TimePoint,
     blockNum?: number,
-    store?: TableStore
+    store?: TableStore,
+    chain?: string
   } = {}) {
     this.accounts = accounts || {}
     this.timestamp = timestamp || TimePoint.fromMilliseconds(0)
     this.blockNum = blockNum || 0
     this.store = store || new TableStore()
+    this.chain = chain
+  }
+
+  // The chain-specific host functions this chain provides. Generic Antelope
+  // provides none.
+  enabledChainHostFunctions (): ReadonlySet<string> {
+    return new Set(this.chain ? (CHAIN_SPECIFIC_HOST_FUNCTIONS[this.chain] ?? []) : [])
   }
 
   private applyTransactionActions(transaction: Transaction, decodedData?: any) {

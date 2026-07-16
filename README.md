@@ -21,12 +21,24 @@ The focus of VeRT is on the better compatibility than the performance, so it can
 ## Chain compatibility
 
 Antelope chains do not all expose the same host functions, and a harness that offers more than the
-target chain will link a contract that the chain rejects at `setcode`.
+target chain will link a contract that the chain rejects at `setcode`. To keep a passing suite
+meaningful, chain-specific host functions are withheld unless the emulated chain provides them.
 
-`verify_rsa_sha256_sig` is currently registered for every `Blockchain`. It exists on WAX; it does not
-exist on EOS, Jungle4, or Vaulta. A contract that calls it therefore passes here and fails to load on
-those chains. Until the host function set is selectable per chain, treat a passing suite as evidence
-for WAX only when RSA is involved.
+A `Blockchain` emulates generic Antelope by default, which exposes no chain-specific host functions.
+Name a chain to add the ones unique to it:
+
+```typescript
+const bc = new Blockchain();                  // generic Antelope
+const wax = new Blockchain({ chain: 'wax' });  // adds verify_rsa_sha256_sig
+```
+
+`verify_rsa_sha256_sig` exists on WAX and not on EOS, Jungle4, or Vaulta. A contract that imports it
+instantiates under a `wax` blockchain and fails to instantiate under any other, which mirrors how
+`setcode` accepts it on WAX and rejects it elsewhere. Test WAX contracts that use RSA against a
+`wax` blockchain, and test everything else against the default.
+
+The chain-specific host functions are declared in `CHAIN_SPECIFIC_HOST_FUNCTIONS`; add an entry
+there to model a new one.
 
 ## Installation
 
