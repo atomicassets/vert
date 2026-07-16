@@ -7,7 +7,7 @@ import { Action, Name, NameType, PermissionLevel, PublicKey, Serializer, Signatu
 import { sha256, sha512, sha1, ripemd160 } from "hash.js";
 import { sha3_256, keccak256 } from "js-sha3"
 import { bigIntToName, nameToBigInt, nameTypeToBigInt } from "./bn";
-import { Blockchain } from "./blockchain";
+import { Blockchain, ALL_CHAIN_SPECIFIC_HOST_FUNCTIONS } from "./blockchain";
 import { Account } from "./account";
 import { antelopeAssert, antelopeAssertMessage, antelopeAssertCode } from "./errors";
 import { isAuthoritySatisfied } from "./utils";
@@ -1473,6 +1473,16 @@ class VM extends Vert {
         __unordtf2: () => { throw new Error("Not implemented _unordtf2") },
       },
     };
+
+    // Withhold chain-specific host functions the target chain does not provide,
+    // so a contract importing one fails to instantiate here exactly as setcode
+    // would reject it on that chain. Generic Antelope withholds all of them.
+    const enabledChainHostFunctions = bc.enabledChainHostFunctions();
+    for (const fn of ALL_CHAIN_SPECIFIC_HOST_FUNCTIONS) {
+      if (!enabledChainHostFunctions.has(fn)) {
+        delete (imports.env as any)[fn];
+      }
+    }
 
     super(imports, wasm);
     this.imports = imports;
