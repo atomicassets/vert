@@ -1,8 +1,8 @@
 {
-  "name": "@waxio/vert",
+  "name": "@atomichub/vert",
   "version": "2.1.1",
-  "homepage": "https://github.com/worldwide-asset-exchange/wax-vert",
-  "description": "Testing library for WAX and Vaulta smart contracts",
+  "homepage": "https://github.com/atomicassets/vert",
+  "description": "Testing library for Antelope smart contracts, with per-chain host function parity",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -54,5 +54,12 @@
     "rustbn.js": "^0.2.0",
     "sorted-btree": "^1.6.0",
     "node-rsa": "^1.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atomicassets/vert.git"
+  },
+  "bugs": {
+    "url": "https://github.com/atomicassets/vert/issues"
   }
 }

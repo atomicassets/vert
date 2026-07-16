@@ -2,6 +2,8 @@
 
 **VM emulation RunTime for WASM-based blockchain contracts**
 
+> `@atomichub/vert` is a maintained fork of [`@waxio/vert`](https://github.com/worldwide-asset-exchange/wax-vert), itself a fork of [`@vaulta/vert`](https://github.com/eosnetworkfoundation/vert), originally written by Jeeyong "conr2d" Um. It exists to keep the harness current for contracts that deploy across several Antelope chains, where host functions differ per chain. See [Chain compatibility](#chain-compatibility). MIT throughout, with the upstream copyright notices preserved.
+
 VeRT is a virtual machine emulator for Antelope blockchains.
 It uses the built-in WebAssembly object in JavaScript, so can be executed on any modern browsers or runtime environments without additional dependencies.
 It doesn't support the full specification of each blockchain state-machine, but can be used to run and test smart contracts before deployment.
@@ -16,16 +18,26 @@ The focus of VeRT is on the better compatibility than the performance, so it can
 - WebAssembly binary with exported memory
 - Nodejs v16 or higher (JavaScript runtime with WebAssembly BigInt support)
 
+## Chain compatibility
+
+Antelope chains do not all expose the same host functions, and a harness that offers more than the
+target chain will link a contract that the chain rejects at `setcode`.
+
+`verify_rsa_sha256_sig` is currently registered for every `Blockchain`. It exists on WAX; it does not
+exist on EOS, Jungle4, or Vaulta. A contract that calls it therefore passes here and fails to load on
+those chains. Until the host function set is selectable per chain, treat a passing suite as evidence
+for WAX only when RSA is involved.
+
 ## Installation
 
 ```shell
-npm install @waxio/vert
+npm install @atomichub/vert
 ```
 
 ## Example usage
 
 ```typescript
-import { Blockchain, nameToBigInt, expectToThrow } from "@waxio/vert";
+import { Blockchain, nameToBigInt, expectToThrow } from "@atomichub/vert";
 import { assert } from "chai";
 
 // instantiate the blockchain emulator
