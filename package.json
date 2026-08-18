@@ -3,14 +3,31 @@
   "version": "2.2.0",
   "homepage": "https://github.com/atomicassets/vert",
   "description": "Testing library for Antelope smart contracts, with per-chain host function parity",
+  "keywords": [
+    "antelope",
+    "eosio",
+    "wax",
+    "smart-contracts",
+    "testing",
+    "wasm"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
   "engines": {
     "node": ">=20"
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "!src/**/tests"
   ],
   "scripts": {
     "build": "rm -rf dist && tsc",
@@ -20,8 +37,15 @@
     "prepack": "npm run build",
     "prepublishOnly": "npm run test"
   },
-  "author": "Jeeyong Um <conr2d@gmail.com>",
+  "author": {
+    "name": "AtomicHub",
+    "url": "https://atomichub.io"
+  },
   "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "devDependencies": {
     "@types/chai": "^4.3.11",
     "@types/elliptic": "^6.4.18",

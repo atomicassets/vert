@@ -1,4 +1,6 @@
-# VeRT
+# @atomichub/vert (VeRT)
+
+[![npm version](https://img.shields.io/npm/v/%40atomichub%2Fvert)](https://www.npmjs.com/package/@atomichub/vert) [![CI](https://github.com/atomicassets/vert/actions/workflows/ci.yml/badge.svg)](https://github.com/atomicassets/vert/actions/workflows/ci.yml) [![License](https://img.shields.io/npm/l/%40atomichub%2Fvert)](LICENSE)
 
 **VM emulation RunTime for WASM-based blockchain contracts**
 
@@ -12,6 +14,12 @@ The focus of VeRT is on the better compatibility than the performance, so it can
 - Run and test smart contracts
 - Minimum dependencies (No native wrapper, docker or remote connection)
 - Volatile key-value store with state rollback 
+
+## Installation
+
+```shell
+npm install @atomichub/vert
+```
 
 ## Requirement
 
@@ -39,12 +47,6 @@ instantiates under a `wax` blockchain and fails to instantiate under any other, 
 
 The chain-specific host functions are declared in `CHAIN_SPECIFIC_HOST_FUNCTIONS`; add an entry
 there to model a new one.
-
-## Installation
-
-```shell
-npm install @atomichub/vert
-```
 
 ## Example usage
 

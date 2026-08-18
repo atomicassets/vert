@@ -38,3 +38,19 @@ jobs:
       # so CI runs the VM suite only.
       - name: Test
         run: yarn mocha 'src/**/*.spec.ts' -r ts-node/register
+
+      # npm pack runs prepack, so this step needs the install above.
+      - name: Packaging
+        run: bash scripts/packaging.test.sh
+
+  release-notes:
+    runs-on: ubuntu-latest
+    name: release notes
+    steps:
+      - uses: actions/checkout@v4
+
+      # The script builds its own git repository under mktemp and sets the
+      # commit identity inside it, so the job needs no node setup and no git
+      # configuration of its own.
+      - name: Test
+        run: bash scripts/release-notes.test.sh
