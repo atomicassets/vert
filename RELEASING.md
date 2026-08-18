@@ -1,0 +1,198 @@
+# Releasing @atomichub/vert
+
+How a version of this package reaches npm and GitHub. A release ends at a
+rendered GitHub Release, not at the npm publish.
+
+## Checklist
+
+1. The feature PR carries the `CHANGELOG.md` entry for the version under
+   `## [X.Y.Z]`, written in the section shape below with H3 headings, and
+   lands on `main`. The entry is the editorial text of the Release, so it is
+   written once, in the PR that makes the change.
+
+2. Land a `chore(release): X.Y.Z` commit on `main` that bumps the version in
+   `package.json` and touches nothing else. Read the `CHANGELOG.md` entry
+   against the template below now, because the next step publishes a tag.
+
+3. Tag the release commit and push the tag:
+
+    ```sh
+    git tag vX.Y.Z && git push origin vX.Y.Z
+    ```
+
+    `.github/workflows/publish.yml` starts and waits on the `npm-publish`
+    environment. Push the tag before creating the Release, because
+    `gh release create` resolves the tag rather than creating it. The tag is
+    the release: consumers pin or float on it, so push it only once the entry
+    and the code behind it are ready.
+
+4. Compose the body, read it, then create the Release:
+
+    ```sh
+    scripts/release-notes.sh vX.Y.Z > notes.md
+    gh release create vX.Y.Z --verify-tag --title vX.Y.Z --notes-file notes.md
+    ```
+
+    Add `--prerelease` for a candidate tag such as `vX.Y.Z-rc1`, so the
+    candidate does not take the latest marker. With more than one release in
+    flight, create them in ascending version order, so that marker stays
+    monotonic.
+
+5. Approve the `npm-publish` environment for the tag. With more than one
+   release waiting, approve in ascending version order, so the npm `latest`
+   tag stays monotonic.
+
+6. Verify the published version and the rendered Release:
+
+    ```sh
+    npm view @atomichub/vert version
+    gh release view vX.Y.Z
+    ```
+
+## Publish auth
+
+The publish job authenticates through npm trusted publishing (OIDC). It holds
+no npm token and sets no registry URL on the setup step, so nothing writes an
+`.npmrc` auth entry and npm 11.5.1 or later exchanges the job's OIDC identity
+for a short-lived credential of its own. The `npm-publish` environment is the
+gate on that identity: a pushed tag queues the run until a maintainer approves
+it.
+
+`publishConfig.provenance` in `package.json` makes a default local npm publish
+fail, because no OIDC identity is available outside CI to satisfy it. It is
+data inside the manifest being published, not an access control. The durable
+control is the npm-side package setting that requires trusted publishing,
+which is configured for `@atomichub/vert`.
+
+## Body template
+
+The Release title is the tag name verbatim. The body is an optional
+one-sentence summary, then the sections that have items, then the commit list,
+then the compare link as the last line. Nothing follows the link, and a
+section with no items is left out.
+
+```
+<one-sentence summary, optional>
+
+## Breaking changes
+
+- <what changed, and what the reader does about it>. (#N)
+
+## Upgrading
+
+- <a renamed export, a configuration key to set, or a step to run>. (#N)
+
+## Features
+
+- <what is new>. (#N)
+
+## Bug fixes
+
+- <what was wrong and is not now>. (#N)
+
+## Security
+
+- <the advisory or the dependency lift, named>. (#N)
+
+## Deprecations
+
+- <what is deprecated and what replaces it>. (#N)
+
+## Other changes
+
+- <a change a consumer notices that fits no section above>. (#N)
+
+## Commits
+
+- <short sha> <subject>
+
+Full changelog: https://github.com/atomicassets/vert/compare/<PREV>...<TAG>
+```
+
+The section order is breaking changes, upgrading, features, bug fixes,
+security, deprecations, other changes. `## Security` carries advisories and
+dependency lifts, each naming its GHSA or CVE identifier; a release with none
+leaves the section out.
+
+## Voice
+
+- Neutral and factual, the register of the Node.js or esbuild release notes.
+- Sectioned. The heading says what kind of change it is, so the item does not
+  repeat it.
+- One to three plain sentences per item: what changed, and what the reader
+  does about it when action is needed. Code identifiers in backticks.
+- Every item ends with its PR reference `(#N)`, or with its short sha in
+  backticks when the change had no PR.
+- No preface, no motivation essay, no clause chain explaining how the author
+  got there. The why stays only where it changes what the reader does.
+- Present tense for the new behavior, sentence-case headings, straight quotes,
+  and no em-dash.
+
+## The CHANGELOG entry
+
+`CHANGELOG.md` is where the editorial text is written, and the Release body is
+that entry with its headings promoted one level. An entry heading is
+`## [X.Y.Z]`. Under it comes an optional one-line summary, then the H3
+sections in the order above. A candidate tag reads the entry for its base
+version as it stands at that tag, so `vX.Y.Z-rc1` reads `## [X.Y.Z]`.
+
+## Tag ranges and older releases
+
+- `PREV` for a stable tag is the nearest earlier stable `v*` tag, so a stable
+  release lists every commit since the last stable release and skips the
+  prereleases between them. `PREV` for a prerelease tag is the nearest earlier
+  tag of any kind. A stable tag whose only earlier tags are prereleases takes
+  the nearest of them.
+- `## Commits` lists the whole `PREV..TAG` range, oldest first, including the
+  release commit. Its line count equals `git rev-list --count PREV..TAG`.
+- `v2.1.1` is the upstream-base tag. It marks the last commit taken from
+  upstream, where `package.json` still read `@waxio/vert`, and it carries no
+  Release by design. `v2.2.0` bounds its commit range on it. No tag earlier
+  than `v2.1.1` exists in this repository.
+- A tag with no earlier tag has no `PREV`. Its body is the summary and the
+  sentence `Initial release.`, with no commit list and no compare link, and it
+  is written by hand.
+- A Release created for a tag older than the current latest is created with
+  `--latest=false`, so the latest marker stays on the newest version.
+
+`scripts/release-notes.sh` needs bash, git, awk and sed. It reads
+`CHANGELOG.md` at the tag rather than from the working tree, so the body
+describes what the tag ships. A second argument names a ref to read instead:
+`scripts/release-notes.sh vX.Y.Z main` composes the same body from `main`
+before the tag exists, prints the range it used on stderr, and refuses the
+preview once that ref already carries the tag.
+
+The script exits non-zero and names what is missing when no tag is given, when
+the tag is neither v-prefixed nor bare semver, when the tag does not exist and
+no ref was passed, when the CHANGELOG at that point carries no entry for the
+version, and when no earlier tag in the namespace is reachable.
+`scripts/release-notes.test.sh` is its paired check, and CI runs it on every
+push and pull request.
+
+## Published package metadata
+
+A release publishes a package page as well as a Release, and the page reads
+`package.json`. It carries `name` and `version`; `description` (one sentence
+on what the package does and for whom); `license`, with the `LICENSE` file
+shipped; `homepage`; `repository` (an object with `type: git` and the
+`git+https` URL); `bugs` (an object with the issues URL); `author` (an object
+with `name` and `url`); `keywords`; `engines`; `main`, `types` and the
+`exports` map; `files` (the build output and the notices that must ship);
+`sideEffects`; and `publishConfig` with `access: public` and
+`provenance: true`. The package ships a CommonJS build only, so there is no
+`module` field and the `exports` map declares the one entry and its type
+declarations.
+
+The README is the npm page: it opens with the package name, badges for the npm
+version, CI and license, a short introduction, and an install line. Upstream
+and lineage credit lives there too, in the opening paragraph, so no Release
+body carries a credits section.
+
+`npm pack --dry-run` lists what the tarball ships: `dist` with its type
+declarations and source maps, `src` excluding its `tests` directories,
+`README.md`, `LICENSE` and `package.json`. `src` ships so the source maps
+resolve, but its test sources do not: `files` in `package.json` excludes
+`src/**/tests`. A spec file anywhere in the list, compiled or source, means an
+exclude stopped matching, and anything else unexpected is a `files` mistake.
+`scripts/packaging.test.sh` runs that check in CI, on every Node version in
+the matrix, so the tarball is proven before the tag.

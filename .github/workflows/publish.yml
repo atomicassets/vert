@@ -2,7 +2,7 @@ name: Publish
 
 # Tag-triggered publish to npm. A pushed v* tag starts the run, but the
 # publish step is gated on maintainer sign-off through the npm-publish
-# environment and authenticates with that environment's NPM_TOKEN secret.
+# environment and authenticates through npm trusted publishing (OIDC).
 on:
   push:
     tags: ['v*']
@@ -11,20 +11,21 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     # Required-reviewer environment: a pushed tag queues the publish until a
-    # maintainer approves the run, and the environment scopes the NPM_TOKEN
-    # secret so no other workflow can read it. id-token stays enabled for
-    # npm provenance attestation.
+    # maintainer approves the run. The job holds no npm credential, so it
+    # writes no .npmrc auth entry and npm exchanges the id-token below for a
+    # short-lived one; that same token signs the provenance attestation.
     environment: npm-publish
     permissions:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v4
+      # No registry-url: it writes an .npmrc _authToken line, and npm stops at
+      # that unresolvable credential instead of falling through to OIDC.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-          registry-url: https://registry.npmjs.org
           cache: yarn
 
       - name: Upgrade npm
@@ -51,5 +52,3 @@ jobs:
 
       - name: Publish
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
