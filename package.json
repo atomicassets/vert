@@ -83,6 +83,9 @@
     "sorted-btree": "^1.6.0",
     "node-rsa": "^1.1.1"
   },
+  "resolutions": {
+    "serialize-javascript": "^7.1.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/atomicassets/vert.git"
