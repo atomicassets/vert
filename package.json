@@ -14,6 +14,7 @@
     "build-web": "webpack",
     "start": "node dist/index",
     "test": "mocha src/**/*.spec.ts -r ts-node/register && yarn --cwd examples",
+    "test:browser": "node scripts/browser-bundle.test.js",
     "prepublish": "npm run test && npm run build"
   },
   "author": "Jeeyong Um <conr2d@gmail.com>",
