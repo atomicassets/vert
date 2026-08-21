@@ -21,11 +21,14 @@
   "license": "MIT",
   "devDependencies": {
     "@atomichub/vert": "file:..",
-    "chai": "*",
+    "chai": "^4.5.0",
     "crypto": "^1.0.1",
-    "mocha": "*",
+    "mocha": "^10.8.2",
     "npm-run-all": "^4.1.5",
-    "ts-node": "*",
-    "typescript": "*"
+    "ts-node": "^10.9.2",
+    "typescript": "^4.5.5"
+  },
+  "resolutions": {
+    "serialize-javascript": "^7.1.0"
   }
 }
