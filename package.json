@@ -1,6 +1,6 @@
 {
   "name": "@atomichub/vert",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "homepage": "https://github.com/atomicassets/vert",
   "description": "Testing library for Antelope smart contracts, with per-chain host function parity",
   "keywords": [
