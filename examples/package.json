@@ -15,12 +15,14 @@
     "test:timer": "mocha ./timer/timer.spec.ts -r ts-node/register",
     "test:fixtures": "mocha ./fixtures/fixtures.spec.ts -r ts-node/register",
     "test:rsa": "mocha ./rsa/rsa.spec.ts -r ts-node/register",
-    "test": "run-p test:*"
+    "test": "run-p test:*",
+    "typecheck": "tsc --noEmit"
   },
   "author": "Jeeyong Um <conr2d@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "@atomichub/vert": "file:..",
+    "@wharfkit/antelope": "1.1.1",
     "chai": "^4.5.0",
     "crypto": "^1.0.1",
     "mocha": "^10.8.2",

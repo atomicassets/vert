@@ -44,6 +44,14 @@ jobs:
       - name: Browser bundle
         run: node scripts/browser-bundle.test.js
 
+      # The demo specs import the library from ../../dist and Antelope from
+      # their own tree. A root dependency bump can therefore split the two
+      # builds apart, and no other step here would notice.
+      - name: Examples types
+        run: |
+          yarn --cwd examples install --frozen-lockfile
+          yarn --cwd examples run typecheck
+
       # The examples compile contracts with blanc++, which is not available here,
       # so CI runs the VM suite only.
       - name: Test
