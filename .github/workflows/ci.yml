@@ -34,6 +34,16 @@ jobs:
       - name: Build
         run: yarn run build
 
+      # The browser bundle resolves node builtins through its own fallback map,
+      # so nothing else in this workflow would notice it breaking.
+      - name: Build web
+        run: yarn run build-web
+
+      # A compiling bundle is not a working one. This drives the RSA host
+      # function in a context with none of the node globals the bundle maps away.
+      - name: Browser bundle
+        run: node scripts/browser-bundle.test.js
+
       # The examples compile contracts with blanc++, which is not available here,
       # so CI runs the VM suite only.
       - name: Test

@@ -54,7 +54,12 @@
     "bigint-conversion": "^2.4.3",
     "buffer": "^6.0.3",
     "clean-webpack-plugin": "^4.0.0",
+    "constants-browserify": "^1.0.0",
+    "create-hash": "^1.2.0",
     "mocha": "^10.4.0",
+    "process": "^0.11.10",
+    "randombytes": "^2.1.0",
+    "stream-browserify": "^3.0.0",
     "ts-loader": "^9.2.6",
     "ts-node": "^10.5.0",
     "tslib": "^2.3.1",
@@ -79,9 +84,9 @@
     "lodash": "^4.17.21",
     "loglevel": "^1.8.0",
     "loglevel-plugin-prefix": "^0.8.4",
+    "node-rsa": "^1.1.1",
     "rustbn.js": "^0.2.0",
-    "sorted-btree": "^1.6.0",
-    "node-rsa": "^1.1.1"
+    "sorted-btree": "^1.6.0"
   },
   "resolutions": {
     "serialize-javascript": "^7.1.0"
